@@ -32,30 +32,6 @@ This project allows multiple users to join a shared room, write code together, c
 
 ---
 
-## 📂 Project Structure
-
-Code-editor/
-│
-├── backend/ # Node.js + Express backend
-│ ├── server.js # Main server file
-│ ├── models/ # MongoDB schemas
-│ └── package.json
-│
-├── frontend/ # React frontend
-│ ├── src/
-│ │ ├── components/ # Reusable UI components
-│ │ ├── pages/ # EditorPage, HomePage, etc.
-│ │ ├── App.jsx
-│ │ └── main.jsx
-│ └── package.json
-│
-├── temp/ # Temporary code execution files (auto-cleaned)
-├── README.md # Documentation
-└── .env # Environment variables
-
-
----
-
 ## ⚙️ Requirements
 
 - Node.js >= 18  
@@ -64,7 +40,6 @@ Code-editor/
 - WSL2 (if using Docker on Windows)  
 
 ---
-
 
 ▶️ Running Code in Docker
 
