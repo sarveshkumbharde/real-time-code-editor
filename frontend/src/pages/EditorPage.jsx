@@ -1,6 +1,7 @@
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useParams, useSearchParams, useNavigate } from "react-router-dom"
-import { useEffect, useState, useMemo } from "react"
 import io from "socket.io-client"
+import axios from "axios"
 import CodeEditor from "../components/CodeEditor"
 import ChatBox from "../components/ChatBox"
 import UserList from "../components/UserList"
@@ -14,6 +15,9 @@ export default function EditorPage() {
   const socket = useMemo(() => io(import.meta.env.VITE_SOCKET_SERVER_URL), [])
   const [initialCode, setInitialCode] = useState("")
   const [language, setLanguage] = useState("javascript")
+  const [output, setOutput] = useState("")
+
+  const editorRef = useRef(null) // Ref for current code in Monaco
 
   useEffect(() => {
     if (!roomId) return
@@ -25,74 +29,81 @@ export default function EditorPage() {
       setLanguage(lang || "javascript")
     })
 
-    return () => {
-      socket.disconnect()
-    }
+    return () => socket.disconnect()
   }, [socket, roomId, name])
+
+  const runCode = async () => {
+    if (!editorRef.current) return
+    const code = editorRef.current.getValue() // ✅ get current code
+    try {
+      const { data } = await axios.post(
+        "http://localhost:5000/api/run",
+        { code, language },
+        { headers: { "Content-Type": "application/json" } }
+      )
+      setOutput(data.output)
+    } catch (err) {
+      console.error(err)
+      setOutput("❌ Error running code")
+    }
+  }
 
   const leaveRoom = () => {
     socket.disconnect()
     navigate("/")
   }
 
-  if (!roomId) {
-    return <div className="p-4 text-red-500">❌ No room ID</div>
-  }
-
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Editor + Top Bar */}
+    <div className="flex h-screen">
+      {/* Left side: Editor */}
       <div className="flex-1 flex flex-col">
-        {/* Room ID + Controls */}
-        <div className="p-2 bg-gray-100 border-b flex items-center justify-between">
-          <div>
-            Room ID: <span className="text-blue-600">{roomId}</span>
-            <button
-              onClick={() => navigator.clipboard.writeText(roomId)}
-              className="ml-2 bg-blue-500 text-white px-2 py-1 rounded text-sm"
-            >
-              Copy
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="border px-2 py-1 rounded"
-            >
-              <option value="javascript">JavaScript</option>
-              <option value="python">Python</option>
-              <option value="java">Java</option>
-              <option value="c">C</option>
-              <option value="cpp">C++</option>
-              <option value="typescript">TypeScript</option>
-              <option value="html">HTML</option>
-              <option value="css">CSS</option>
-            </select>
-
-            <button
-              onClick={leaveRoom}
-              className="bg-red-500 text-white px-2 py-1 rounded text-sm"
-            >
-              Leave Room
-            </button>
-          </div>
+        {/* Toolbar */}
+        <div className="flex items-center gap-4 p-2 border-b">
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="border px-2 py-1 rounded"
+          >
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+            <option value="c">C</option>
+            <option value="go">Go</option>
+          </select>
+          <button
+            onClick={runCode}
+            className="bg-green-500 text-white px-3 py-1 rounded"
+          >
+            Run Code
+          </button>
+          <button
+            onClick={leaveRoom}
+            className="bg-red-500 text-white px-3 py-1 rounded"
+          >
+            Leave Room
+          </button>
         </div>
 
-        {/* Code Editor */}
-        <div className="flex-1 h-full">
+        {/* Editor */}
+        <div className="flex-1">
           <CodeEditor
             roomId={roomId}
             socket={socket}
             initialValue={initialCode}
             language={language}
-          /> 
+            editorRef={editorRef} // ✅ pass ref
+          />
+        </div>
+
+        {/* Output */}
+        <div className="h-32 border-t bg-black text-white p-2 overflow-auto">
+          <pre>{output}</pre>
         </div>
       </div>
 
-      {/* Chat + Users */}
-      <div className="w-80 flex flex-col border-l">
+      {/* Right side: Chat + Users */}
+      <div className="w-80 border-l flex flex-col">
         <ChatBox roomId={roomId} socket={socket} name={name} />
         <UserList socket={socket} />
       </div>
