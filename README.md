@@ -19,8 +19,7 @@ Built using **React, Node.js, Express, Socket.IO, MongoDB, and Docker**.
   - Java
   - C++
   - C
-  - Go
-
+  
 - 🗄 **Persistent Rooms**  
   Code and chat history are saved in **MongoDB** for each room.
 
