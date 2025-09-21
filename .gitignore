@@ -6,7 +6,9 @@ yarn-error.log*
 
 # Dependency directories
 backend/node_modules
+backend/Dockerfile.backend
 frontend/node_modules
+backend/Dockerfile.frontend
 
 # Build outputs
 dist/
