@@ -48,12 +48,11 @@ const io = new Server(server, {
 const users = {} // socket.id -> { name, roomId }
 
 // ---------------- Socket.io Events ----------------
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id)
+io.on("connection", (socket) => {  console.log("User connected:", socket.id)
 
   // Join room
   socket.on("join-room", async ({ roomId, name }) => {
-    socket.join(roomId)
+    socket.join(roomId) //user joins room with roomId
     users[socket.id] = { name: name || "Anonymous", roomId }
 
     // Ensure room exists
@@ -148,7 +147,7 @@ app.post("/api/run", (req, res) => {
   const filePath = path.join(tempDir, config.file)
   fs.writeFileSync(filePath, code)
 
-const dockerCmd = `docker run --rm -m 128m --cpus="0.5" -v "${tempDir}:/app" -w /app ${config.image} sh -c "${config.cmd}"`
+const dockerCmd = `docker run --rm -m 512m --cpus="0.5" -v "${tempDir}:/app" -w /app ${config.image} sh -c "${config.cmd}"`
 
   exec(dockerCmd, { timeout: 5000 }, (err, stdout, stderr) => {
     fs.rmSync(tempDir, { recursive: true, force: true })
