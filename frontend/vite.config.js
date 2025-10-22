@@ -9,7 +9,7 @@ export default defineConfig({
     proxy: {
       // This helps with local development
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://real-time-code-editor-yzuv.onrender.com',
         changeOrigin: true,
       },
     },
