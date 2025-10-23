@@ -1,8 +1,0 @@
-frontend/
-.git/
-.github/
-README.md
-*.md
-Dockerfile
-temp/
-docker-compose.yaml
