@@ -9,8 +9,16 @@ export default defineConfig({
     proxy: {
       // This helps with local development
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://real-time-code-editor-yzuv.onrender.com',  // Local backend during development
         changeOrigin: true,
+        secure: false,
       },
+      '/socket.io': {
+        target: 'https://real-time-code-editor-yzuv.onrender.com',  // For WebSocket connections
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      }
     },
+  },  // ← Missing comma added here
 })

@@ -33,7 +33,12 @@ const Message = mongoose.model("Message", messageSchema)
 
 // ---------------- Server Setup ----------------
 const app = express()
-app.use(cors())
+app.use(cors({origin: [
+    'https://real-time-code-editor-bc86.vercel.app/', // Add your Vercel URL later
+    'http://localhost:3000',
+    'http://localhost:5173' // Vite default port
+  ],
+  credentials: true}))
 app.use(express.json())
 
 const server = http.createServer(app)

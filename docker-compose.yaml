@@ -20,7 +20,7 @@ services:
       - ./backend/temp:/app/temp
       - /var/run/docker.sock:/var/run/docker.sock   # backend needs access to Docker
     environment:
-      - MONGO_URI=mongodb://mongo:27017/codeeditor
+      - MONGO_URI=mongodb+srv://sarveshkumbharde_db_user:Na6RBZBKxXRRSzgM@cluster0.fowgire.mongodb.net/code-editor
     depends_on:
       - mongo
 
