@@ -57,10 +57,11 @@ const users = {} // socket.id -> { name, roomId }
 io.on("connection", (socket) => {  console.log("User connected:", socket.id)
 
   // Join room
-  socket.on("join-room", async ({ roomId, name }) => {
-    socket.join(roomId) //user joins room with roomId
-    users[socket.id] = { name: name || "Anonymous", roomId }
+ socket.on("join-room", async ({ roomId, name }) => {
+  socket.join(roomId)
+  users[socket.id] = { name: name || "Anonymous", roomId }
 
+  try {
     // Ensure room exists
     let room = await Room.findOne({ roomId })
     if (!room) {
@@ -69,31 +70,49 @@ io.on("connection", (socket) => {  console.log("User connected:", socket.id)
 
     // Send current code
     socket.emit("load-code", { code: room.code, language: room.language })
-
-    // Send recent messages (last 50)
+    
+    // Send recent messages
     const recentMsgs = await Message.find({ roomId })
       .sort({ createdAt: -1 })
       .limit(50)
     socket.emit("recent-messages", { messages: recentMsgs.reverse() })
 
-    // Update room users
-    const roomUsers = Object.entries(users)
-      .filter(([_, u]) => u.roomId === roomId)
-      .map(([id, u]) => ({ id, name: u.name }))
-    io.to(roomId).emit("room-users", roomUsers)
-  })
+  } catch (error) {
+    console.error("Database error in join-room:", error)
+    // Send empty code if DB fails
+    socket.emit("load-code", { code: "", language: "javascript" })
+    socket.emit("recent-messages", { messages: [] })
+  }
 
+  // Update room users (this works without DB)
+  const roomUsers = Object.entries(users)
+    .filter(([_, u]) => u.roomId === roomId)
+    .map(([id, u]) => ({ id, name: u.name }))
+  io.to(roomId).emit("room-users", roomUsers)
+})
   // Code changes
   socket.on("code-change", async ({ roomId, code, language }) => {
-    if (!roomId) return
-    socket.to(roomId).emit("code-change", { code, language })
+  if (!roomId) return
+  
+  // Broadcast to other users in the room
+  socket.to(roomId).emit("code-change", { code, language })
 
+  try {
+    // Update in database with BOTH code and language
     await Room.findOneAndUpdate(
       { roomId },
-      { code, language, updatedAt: new Date() },
+      { 
+        code: code, 
+        language: language,  // ← Make sure language is included
+        updatedAt: new Date() 
+      },
       { upsert: true }
     )
-  })
+    console.log(`✅ Saved code for room ${roomId}, language: ${language}`)
+  } catch (error) {
+    console.error("❌ Failed to save code:", error)
+  }
+})
 
   // Chat messages
   socket.on("chat-message", async ({ roomId, message }) => {
