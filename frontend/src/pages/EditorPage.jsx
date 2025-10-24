@@ -37,7 +37,7 @@ export default function EditorPage() {
     const code = editorRef.current.getValue() // ✅ get current code
     try {
       const { data } = await axios.post(
-        "http://localhost:5000/api/run",
+        `${import.meta.env.VITE_SOCKET_SERVER_URL}/api/run`,
         { code, language },
         { headers: { "Content-Type": "application/json" } }
       )
