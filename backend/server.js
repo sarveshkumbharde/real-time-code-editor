@@ -146,14 +146,13 @@ app.post("/api/run", (req, res) => {
   const config = LANGUAGE_CONFIG[language]
   if (!config) return res.status(400).json({ error: "Unsupported language" })
 
-  const tempDir = path.join("C:/Users/Sarvesh Kumbharde/Desktop/Code-editor/temp", uuidv4())
+  const tempDir = path.join("/tmp/code-execution" uuidv4())
   fs.mkdirSync(tempDir, { recursive: true })
 
   const filePath = path.join(tempDir, config.file)
   fs.writeFileSync(filePath, code)
 
 const dockerCmd = `docker run --rm -m 512m --cpus="0.5" -v "${tempDir}:/app" -w /app ${config.image} sh -c "${config.cmd}"`
-
   exec(dockerCmd, { timeout: 5000 }, (err, stdout, stderr) => {
     fs.rmSync(tempDir, { recursive: true, force: true })
 
