@@ -146,7 +146,7 @@ app.post("/api/run", (req, res) => {
   const config = LANGUAGE_CONFIG[language]
   if (!config) return res.status(400).json({ error: "Unsupported language" })
 
-  const tempDir = path.join("/tmp/code-execution" uuidv4())
+  const tempDir = path.join("/tmp/code-execution", uuidv4())
   fs.mkdirSync(tempDir, { recursive: true })
 
   const filePath = path.join(tempDir, config.file)
