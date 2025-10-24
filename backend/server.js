@@ -34,7 +34,7 @@ const Message = mongoose.model("Message", messageSchema)
 // ---------------- Server Setup ----------------
 const app = express()
 app.use(cors({origin: [
-    'https://real-time-code-editor-three-nu.vercel.app/', // Add your Vercel URL later
+    'https://real-time-code-editor-three-nu.vercel.app', // Add your Vercel URL later
     'http://localhost:3000',
     'http://localhost:5173' // Vite default port
   ],
