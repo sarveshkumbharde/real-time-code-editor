@@ -223,15 +223,32 @@ app.get("/api/rooms/:roomId", async (req, res) => {
 })
 
 // ---------------- Start Server ----------------
+// ---------------- Start Server ----------------
 const PORT = process.env.PORT || 5000
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/codeeditor"
+const MONGO_URI = process.env.MONGO_URI
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log("✅ MongoDB connected")
-    server.listen(PORT, () =>
-      console.log(`🚀 Server running on http://localhost:${PORT}`)
-    )
+console.log("🔧 Attempting MongoDB connection...")
+console.log("📦 Database:", MONGO_URI ? "URI provided" : "No URI")
+
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log("✅ MongoDB connected successfully")
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server running on port ${PORT}`)
   })
-  .catch((err) => console.error("MongoDB connection error:", err))
+})
+.catch((err) => {
+  console.error("❌ MongoDB connection FAILED:")
+  console.error("Error name:", err.name)
+  console.error("Error message:", err.message)
+  console.error("Full error:", err)
+  
+  // Start server anyway with in-memory storage
+  console.log("🔄 Starting server with in-memory storage...")
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server running (in-memory mode) on port ${PORT}`)
+  })
+})
