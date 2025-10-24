@@ -1,7 +1,13 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import Editor from "@monaco-editor/react"
 
 export default function CodeEditor({ roomId, socket, initialValue, language, editorRef }) {
+  const currentLanguageRef = useRef(language)
+
+  // Update the ref when language changes
+  useEffect(() => {
+    currentLanguageRef.current = language
+  }, [language])
 
   function handleEditorDidMount(editor) {
     editorRef.current = editor
@@ -9,7 +15,12 @@ export default function CodeEditor({ roomId, socket, initialValue, language, edi
     // Send code changes to server
     editor.onDidChangeModelContent(() => {
       const code = editor.getValue()
-      socket.emit("code-change", { roomId, code, language })
+      // Use the ref to get the current language
+      socket.emit("code-change", { 
+        roomId, 
+        code, 
+        language: currentLanguageRef.current 
+      })
     })
   }
 
@@ -17,11 +28,16 @@ export default function CodeEditor({ roomId, socket, initialValue, language, edi
     if (!socket) return
 
     // Receive code changes from others
-    socket.on("code-change", ({ code }) => {
+    socket.on("code-change", ({ code, language: incomingLanguage }) => {
       if (editorRef.current && code !== editorRef.current.getValue()) {
-        const position = editorRef.current.getPosition() // save cursor
+        const position = editorRef.current.getPosition()
         editorRef.current.setValue(code)
-        editorRef.current.setPosition(position) // restore cursor
+        editorRef.current.setPosition(position)
+        
+        // Optional: Update language if different
+        if (incomingLanguage && incomingLanguage !== currentLanguageRef.current) {
+          currentLanguageRef.current = incomingLanguage
+        }
       }
     })
 
@@ -34,7 +50,7 @@ export default function CodeEditor({ roomId, socket, initialValue, language, edi
         height="100%"
         width="100%"
         language={language || "javascript"}
-        defaultValue={initialValue || ""} // only initial load
+        value={initialValue || ""} // Use value instead of defaultValue
         onMount={handleEditorDidMount}
         theme="vs-dark"
         options={{
