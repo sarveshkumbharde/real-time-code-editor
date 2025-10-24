@@ -7,14 +7,13 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      // This helps with local development
       '/api': {
-        target: 'https://real-time-code-editor-yzuv.onrender.com',  // Local backend during development
+        target: 'https://real-time-code-editor-1-hv89.onrender.com',  
         changeOrigin: true,
         secure: false,
       },
       '/socket.io': {
-        target: 'https://real-time-code-editor-yzuv.onrender.com',  // For WebSocket connections
+        target: 'https://real-time-code-editor-1-hv89.onrender.com',  // For WebSocket connections
         changeOrigin: true,
         secure: false,
         ws: true,
