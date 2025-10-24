@@ -127,16 +127,55 @@ io.on("connection", (socket) => {  console.log("User connected:", socket.id)
 })
 
 // ---------------- Code Execution (Docker) ----------------
+// const LANGUAGE_CONFIG = {
+//   javascript: { image: "node:18", file: "main.js", cmd: "node main.js" },
+//   python: { image: "python:3.10", file: "main.py", cmd: "python main.py" },
+//   java: { image: "openjdk:17", file: "Main.java", cmd: "javac Main.java && java Main" },
+//   cpp: { image: "gcc:latest", file: "main.cpp", cmd: "g++ main.cpp -o main && ./main" },
+//   c: { image: "gcc:latest", file: "main.c", cmd: "gcc main.c -o main && ./main" },
+//   go: { image: "golang:latest", file: "main.go", cmd: "go run main.go" },
+// }
+
+// app.post("/api/run", (req, res) => {
+//   const { code, language } = req.body
+
+//   if (!code || !language) {
+//     return res.status(400).json({ error: "Missing code or language" })
+//   }
+
+//   const config = LANGUAGE_CONFIG[language]
+//   if (!config) return res.status(400).json({ error: "Unsupported language" })
+
+//   const tempDir = path.join("/tmp/code-execution", uuidv4())
+//   fs.mkdirSync(tempDir, { recursive: true })
+
+//   const filePath = path.join(tempDir, config.file)
+//   fs.writeFileSync(filePath, code)
+
+// const dockerCmd = `docker run --rm -m 512m --cpus="0.5" -v "${tempDir}:/app" -w /app ${config.image} sh -c "${config.cmd}"`
+//   exec(dockerCmd, { timeout: 5000 }, (err, stdout, stderr) => {
+//     fs.rmSync(tempDir, { recursive: true, force: true })
+
+//     if (err) {
+//       console.error("Docker execution error:", err)
+//       return res.status(500).json({ output: stderr || err.message })
+//     }
+
+//     res.json({ output: stdout || stderr })
+//   })
+// })
+
+// ---------------- Code Execution (Piston API) ----------------
 const LANGUAGE_CONFIG = {
-  javascript: { image: "node:18", file: "main.js", cmd: "node main.js" },
-  python: { image: "python:3.10", file: "main.py", cmd: "python main.py" },
-  java: { image: "openjdk:17", file: "Main.java", cmd: "javac Main.java && java Main" },
-  cpp: { image: "gcc:latest", file: "main.cpp", cmd: "g++ main.cpp -o main && ./main" },
-  c: { image: "gcc:latest", file: "main.c", cmd: "gcc main.c -o main && ./main" },
-  go: { image: "golang:latest", file: "main.go", cmd: "go run main.go" },
+  javascript: { language: "javascript", version: "18.15.0" },
+  python: { language: "python", version: "3.10.0" },
+  java: { language: "java", version: "15.0.2" },
+  cpp: { language: "cpp", version: "10.2.0" },
+  c: { language: "c", version: "10.2.0" },
+  go: { language: "go", version: "1.16.2" },
 }
 
-app.post("/api/run", (req, res) => {
+app.post("/api/run", async (req, res) => {
   const { code, language } = req.body
 
   if (!code || !language) {
@@ -146,23 +185,32 @@ app.post("/api/run", (req, res) => {
   const config = LANGUAGE_CONFIG[language]
   if (!config) return res.status(400).json({ error: "Unsupported language" })
 
-  const tempDir = path.join("/tmp/code-execution", uuidv4())
-  fs.mkdirSync(tempDir, { recursive: true })
+  try {
+    const response = await axios.post('https://emkc.org/api/v2/piston/execute', {
+      language: config.language,
+      version: config.version,
+      files: [{ content: code }]
+    }, {
+      timeout: 10000
+    })
 
-  const filePath = path.join(tempDir, config.file)
-  fs.writeFileSync(filePath, code)
-
-const dockerCmd = `docker run --rm -m 512m --cpus="0.5" -v "${tempDir}:/app" -w /app ${config.image} sh -c "${config.cmd}"`
-  exec(dockerCmd, { timeout: 5000 }, (err, stdout, stderr) => {
-    fs.rmSync(tempDir, { recursive: true, force: true })
-
-    if (err) {
-      console.error("Docker execution error:", err)
-      return res.status(500).json({ output: stderr || err.message })
+    const result = response.data
+    
+    if (result.run) {
+      const output = result.run.output || result.run.stderr || "No output"
+      res.json({ output: output.trim() })
+    } else {
+      res.status(500).json({ output: "Execution failed - no output" })
     }
-
-    res.json({ output: stdout || stderr })
-  })
+  } catch (error) {
+    console.error("Piston API error:", error)
+    
+    if (error.code === 'ECONNABORTED') {
+      res.status(500).json({ output: "Execution timeout - code took too long to run" })
+    } else {
+      res.status(500).json({ output: "Code execution service unavailable. Please try again." })
+    }
+  }
 })
 
 // ---------------- REST API ----------------
