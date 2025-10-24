@@ -1,9 +1,11 @@
 FROM node:18-alpine
 WORKDIR /app
 
-# Copy package files from backend
+# Copy package.json first
 COPY backend/package.json ./
-COPY backend/package-lock.json* ./ 2>/dev/null || true
+
+# Copy package-lock.json if it exists, otherwise continue
+COPY backend/package-lock.json* ./
 
 # Install dependencies
 RUN npm install
