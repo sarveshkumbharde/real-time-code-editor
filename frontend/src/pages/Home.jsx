@@ -1,20 +1,15 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
-  const [roomId, setRoomId] = useState("")
-  const [name, setName] = useState("")
-  const navigate = useNavigate()
-
-  const createRoom = () => {
-    if (!roomId || !name) return alert("Enter room ID and name")
-    navigate(`/editor/${roomId}?name=${encodeURIComponent(name)}`)
-  }
+  const [roomId, setRoomId] = useState("");
+  const [name, setName] = useState("");
+  const navigate = useNavigate();
 
   const joinRoom = () => {
-    if (!roomId || !name) return alert("Enter room ID and name")
-    navigate(`/editor/${roomId}?name=${encodeURIComponent(name)}`)
-  }
+    if (!roomId || !name) return alert("Enter room ID and name");
+    navigate(`/editor/${roomId}?name=${encodeURIComponent(name)}`);
+  };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-4">
@@ -33,20 +28,14 @@ export default function Home() {
         onChange={(e) => setRoomId(e.target.value)}
         className="border px-3 py-2 rounded w-64"
       />
-      <div className="flex gap-4">
-        <button
-          onClick={createRoom}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Create Room
-        </button>
-        <button
-          onClick={joinRoom}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Join Room
-        </button>
-      </div>
+      <button
+        onClick={joinRoom}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+      >
+        Join Room
+      </button>
     </div>
-  )
+  );
 }
+
+

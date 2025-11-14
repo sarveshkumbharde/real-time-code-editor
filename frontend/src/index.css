@@ -1,16 +1,2 @@
 @import "tailwindcss";
 
-.remote-cursor {
-  border-left: 2px solid red;
-}
-
-.remote-cursor-label::after {
-  content: 'User';
-  color: red;
-  margin-left: 2px;
-  font-size: 10px;
-}
-
-.remote-selection {
-  background-color: rgba(255, 0, 0, 0.2);
-}

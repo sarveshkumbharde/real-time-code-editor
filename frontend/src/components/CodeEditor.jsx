@@ -1,47 +1,67 @@
-import { useEffect } from "react"
-import Editor from "@monaco-editor/react"
+import { useEffect, useRef } from "react";
+import Editor from "@monaco-editor/react";
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+import { MonacoBinding } from "y-monaco";
 
-export default function CodeEditor({ roomId, socket, initialValue, language, editorRef }) {
+export default function CodeEditor({ roomId, language, editorRef, initialValue }) {
+  const providerRef = useRef(null);
+  const ydocRef = useRef(null);
+  const ytextRef = useRef(null);
+  const bindingRef = useRef(null);
+
+  // Create Yjs doc + provider ONCE
+  useEffect(() => {
+    const ydoc = new Y.Doc();
+    const provider = new WebsocketProvider("ws://localhost:1234", roomId, ydoc);
+
+    providerRef.current = provider;
+    ydocRef.current = ydoc;
+    ytextRef.current = ydoc.getText("monaco");
+
+    provider.on("status", (e) => console.log("Y-WebSocket:", e.status));
+
+    return () => {
+      provider.destroy();    // fully closes WS cleanly
+      ydoc.destroy();
+    };
+  }, [roomId]);
 
   function handleEditorDidMount(editor) {
-    editorRef.current = editor
+    if (editorRef) editorRef.current = editor;
 
-    // Send code changes to server
-    editor.onDidChangeModelContent(() => {
-      const code = editor.getValue()
-      socket.emit("code-change", { roomId, code, language })
-    })
+    const model = editor.getModel();
+
+    // Bind Monaco ↔ Yjs ONLY once
+    if (!bindingRef.current) {
+      bindingRef.current = new MonacoBinding(
+        ytextRef.current,
+        model,
+        new Set([editor]),
+        providerRef.current.awareness
+      );
+    }
+
+    // Insert initial code ONLY on first load
+    if (ytextRef.current.length === 0 && initialValue) {
+      ytextRef.current.insert(0, initialValue);
+    }
   }
 
-  useEffect(() => {
-    if (!socket) return
-
-    // Receive code changes from others
-    socket.on("code-change", ({ code }) => {
-      if (editorRef.current && code !== editorRef.current.getValue()) {
-        const position = editorRef.current.getPosition() // save cursor
-        editorRef.current.setValue(code)
-        editorRef.current.setPosition(position) // restore cursor
-      }
-    })
-
-    return () => socket.off("code-change")
-  }, [socket])
-
   return (
-    <div className="flex-1 h-full">
-      <Editor
-        height="100%"
-        width="100%"
-        language={language || "javascript"}
-        defaultValue={initialValue || ""} // only initial load
-        onMount={handleEditorDidMount}
-        theme="vs-dark"
-        options={{
-          automaticLayout: true,
-          minimap: { enabled: false },
-        }}
-      />
-    </div>
-  )
+    <Editor
+      height="100%"
+      width="100%"
+      language={language}   // IMPORTANT: not defaultLanguage
+      theme="vs-dark"
+      onMount={handleEditorDidMount}
+      options={{
+        automaticLayout: true,
+        minimap: { enabled: false },
+        fontSize: 16,
+        quickSuggestions: false,
+        semanticHighlighting: false,
+      }}
+    />
+  );
 }
