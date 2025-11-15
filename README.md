@@ -40,9 +40,9 @@ This project allows multiple users to join a shared room, write code together, c
 
 ---
 
-▶️ Running Code in Docker
+▶️ Running Code in Piston API
 
-The backend runs user-submitted code in Docker containers.
+The backend runs user-submitted code using piston api.
 
 Supported languages:
 
