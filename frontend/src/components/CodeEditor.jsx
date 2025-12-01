@@ -59,8 +59,8 @@ export default function CodeEditor({ roomId, language, editorRef, initialValue }
         automaticLayout: true,
         minimap: { enabled: false },
         fontSize: 16,
-        quickSuggestions: false,
-        semanticHighlighting: false,
+        quickSuggestions: true,
+        semanticHighlighting: true,
       }}
     />
   );

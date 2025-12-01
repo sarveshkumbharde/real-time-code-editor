@@ -1,5 +1,5 @@
 // src/pages/EditorPage.jsx
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, use } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import axios from "axios";
@@ -33,6 +33,7 @@ export default function EditorPage() {
   // fullscreen overlay flags
   const [editorFullscreen, setEditorFullscreen] = useState(false);
   const [outputFullscreen, setOutputFullscreen] = useState(false);
+  const [input, setInput] = useState("");
 
   useEffect(() => {
     if (!roomId) return;
@@ -47,7 +48,7 @@ export default function EditorPage() {
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_SOCKET_SERVER_URL}/api/run`,
-        { code, language },
+        { code, language, input },
         { headers: { "Content-Type": "application/json" } }
       );
       setOutput(data.output);
@@ -71,7 +72,11 @@ export default function EditorPage() {
   const downloadCodeAsPDF = () => {
     const code = editorRef.current?.getValue();
     if (!code) return alert("No code to download!");
-    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: "a4",
+    });
     const margin = 40;
     const maxWidth = pdf.internal.pageSize.width - margin * 2;
     const textLines = pdf.splitTextToSize(code, maxWidth);
@@ -169,20 +174,30 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Output strip (not fullscreen) */}
-        <div className="h-[28vh] border-t bg-black text-white p-4 overflow-auto">
+        <div className="h-[28vh] border-t bg-black text-white p-4 flex flex-col overflow-hidden">
           <div className="flex justify-between items-start mb-2">
             <h2 className="font-semibold text-lg text-green-400">Output</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setOutputFullscreen(true)}
-                className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-white flex items-center gap-2"
-              >
-                <FiMaximize /> Fullscreen
-              </button>
-            </div>
+
+            <button
+              onClick={() => setOutputFullscreen(true)}
+              className="bg-gray-700 hover:bg-gray-800 px-3 py-1 rounded text-white flex items-center gap-2"
+            >
+              <FiMaximize /> Fullscreen
+            </button>
           </div>
-          <pre className="whitespace-pre-wrap text-sm">{output}</pre>
+
+          {/* Output display */}
+          <div className="flex-1 overflow-auto mb-3 bg-black p-2 rounded border border-gray-700">
+            <pre className="whitespace-pre-wrap text-sm">{output}</pre>
+          </div>
+
+          {/* User input for stdin */}
+          <textarea
+            className="w-full h-16 bg-gray-900 text-white p-2 rounded border border-gray-700 resize-none"
+            placeholder="Enter input for the program..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+          ></textarea>
         </div>
       </div>
 
@@ -223,7 +238,9 @@ export default function EditorPage() {
       {outputFullscreen && (
         <div className="fixed inset-0 z-50 bg-black text-white flex flex-col">
           <div className="flex items-center justify-between p-3 border-b border-gray-700">
-            <h2 className="text-lg font-semibold text-green-400">Output — Room: {roomId}</h2>
+            <h2 className="text-lg font-semibold text-green-400">
+              Output — Room: {roomId}
+            </h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setOutputFullscreen(false)}
@@ -233,8 +250,17 @@ export default function EditorPage() {
               </button>
             </div>
           </div>
-          <div className="flex-1 p-6 overflow-auto">
-            <pre className="whitespace-pre-wrap">{output}</pre>
+          <div className="flex-1 p-6 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-auto mb-4">
+              <pre className="whitespace-pre-wrap">{output}</pre>
+            </div>
+
+            <textarea
+              className="w-full h-24 bg-gray-900 text-white p-3 rounded border border-gray-700 resize-none"
+              placeholder="Enter input for the program..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+            ></textarea>
           </div>
         </div>
       )}

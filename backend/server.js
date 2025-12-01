@@ -174,7 +174,7 @@ const LANGUAGE_CONFIG = {
 };
 
 app.post("/api/run", async (req, res) => {
-  const { code, language } = req.body;
+  const { code, language, input } = req.body;
 
   if (!code || !language) {
     return res.status(400).json({ error: "Missing code or language" });
@@ -191,7 +191,8 @@ app.post("/api/run", async (req, res) => {
       {
         language: config.language,
         version: config.version,
-        files: [{ content: code }]
+        files: [{ content: code }],
+        stdin: input ?? ""
       },
       { timeout: 10000 }
     );
