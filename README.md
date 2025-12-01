@@ -1,7 +1,7 @@
 # 👨‍💻 Collaborative Code Editor
 
-A real-time collaborative code editor built with **React, Node.js, Express, MongoDB, Socket.io, and Docker**.  
-This project allows multiple users to join a shared room, write code together, chat, and run code in various programming languages using Docker containers.
+A real-time collaborative code editor built with **React, Node.js, Express, MongoDB, Socket.io, and Piston api**.  
+This project allows multiple users to join a shared room, write code together, chat, and run code in various programming languages piston api.
 
 ---
 
@@ -10,9 +10,9 @@ This project allows multiple users to join a shared room, write code together, c
 - 🔗 **Real-time collaboration** with [Socket.io](https://socket.io/)  
 - 📝 **Multi-language support**: JavaScript, Python, Java, C, C++, Go  
 - 📡 **Live chat** within rooms  
-- 👥 **Multiple users** can join the same room  
-- 📂 **Room persistence** with MongoDB (stores code, language, and chat history)  
-- ▶️ **Code execution** inside Docker containers for safe sandboxing  
+- 👥 **Multiple users** can collaborate to code by joining the room.
+- 📂 **Room persistence** with MongoDB (stores chat history)  
+- ▶️ **Code execution** using piston api  
 - 🖥️ **Web-based UI** using React  
 
 ---
@@ -23,34 +23,34 @@ This project allows multiple users to join a shared room, write code together, c
 - React (Vite)
 - Axios
 - Socket.io-client
+- monaco editor 
+- YJS, y-websocket, y-monaco
 
 **Backend:**
 - Node.js + Express
 - MongoDB + Mongoose
-- Socket.io
-- Docker (for code execution)
-
+- Socket.io-server
+- Piston api (for code execution)
 ---
 
 ## ⚙️ Requirements
 
 - Node.js >= 18  
 - MongoDB (local or Atlas)  
-- Docker Desktop (Windows/macOS) or Docker Engine (Linux)  
-- WSL2 (if using Docker on Windows)  
 
 ---
 
-▶️ Running Code in Docker
+▶️ Running Code in Piston API
 
-The backend runs user-submitted code in Docker containers.
+The backend runs user-submitted code using piston api.
 
-Supported languages & Docker images:
+Supported languages:
 
 JavaScript → node:18
 Python → python:3.10
 Java → openjdk:17
 C++ / C → gcc:latest
+Go -> 1.16
 
 
 🚀 Future Improvements
@@ -61,4 +61,4 @@ Support more programming languages
 
 Add file sharing / multiple files per room
 
-Deploy on cloud (Render, Railway, Vercel, etc.)
+Deploy on cloud (Render, Vercel, etc.)
